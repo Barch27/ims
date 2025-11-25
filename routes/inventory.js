@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const InventoryItem = require('../models/Inventory');
 const { authenticate, authorize } = require('../middleware/auth');
+const validate = require('../middleware/validate');
+const inventoryValidator = require('../validators/inventoryValidator');
 
 // Create inventory item
-router.post('/', authenticate, authorize(['ADMIN','STORE_MANAGER']), async (req, res) => {
+router.post('/', authenticate, authorize(['STORE_MANAGER', 'ADMIN']), validate(inventoryValidator), authorize(['ADMIN','STORE_MANAGER']), async (req, res) => {
   const user = req.user;
   const total = req.body.quantityTotal ?? 0;
 
@@ -21,7 +23,7 @@ router.post('/', authenticate, authorize(['ADMIN','STORE_MANAGER']), async (req,
 });
 
 // Get inventory items
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authenticate, authorize(['STAFF','STORE_MANAGER', 'ADMIN']), async (req, res) => {
   const items = await InventoryItem.find();
   res.json(items);
 });
@@ -62,7 +64,7 @@ router.put('/:id', authenticate, authorize(['STORE_MANAGER','ADMIN']), async (re
 });
 
 // Delete inventory item by ID
-router.delete('/:id', authenticate, authorize(['STORE_MANAGER','ADMIN']), async (req, res) => {
+router.delete('/:id', authenticate, authorize(['ADMIN']), async (req, res) => {
   try {
     const item = await InventoryItem.findByIdAndDelete(req.params.id);
 
