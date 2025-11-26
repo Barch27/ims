@@ -7,15 +7,16 @@ exports.create = async (req, res) => {
 };
 
 exports.getAll = async (req, res) => {
-//   const items = await InventoryItem.find();
-  const items = InventorServices.getAllItem();
+//   const items = await InventoryItem.find();  
+  const user = req.user;
+  const items = InventorServices.getAllItem(user);
   res.json(items);
 };
 
 exports.getOne = async (req, res) => {
   try {
-    const item = await InventorServices.getOneItem(req.params.id);
-    if (!item) return res.status(404).json({ error: 'Item not found' });
+    const user = req.user;
+    const item = await InventorServices.getOneItem(req.params.id, user);
     res.json(item);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -25,9 +26,10 @@ exports.getOne = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { name, quantity } = req.body;
+    const user = req.user;
 
     // Find and update
-    const item = await InventoryService.updateItem(req.params.id, {name ,quantity} );
+    const item = await InventorServices.updateItem(req.params.id, {name ,quantity}, user);
 
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
@@ -42,14 +44,12 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
   try {
-    const item = await InventorServices.deleteItem(req.params.id);
-    console.log('deleted item', item);
-    if (!item) {
-      return res.status(404).json({ error: 'Item not found' });
-    }
+    const user = req.user;
+    const item = await InventorServices.deleteItem(req.params.id, user);
+    
 
     res.json({ message: 'Item deleted successfully', item });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
