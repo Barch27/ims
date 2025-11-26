@@ -53,3 +53,16 @@ exports.delete = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+exports.search = async (req, res) => {
+   try {
+    const user = req.user;
+    const filters = req.query; // e.g. ?name=widget&minQuantity=10&sort=quantity
+    const items = await InventorServices.searchItems(filters, user);
+
+    res.json(items);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  } 
+};

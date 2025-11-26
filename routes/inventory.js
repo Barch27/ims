@@ -6,22 +6,27 @@ const validate = require('../middleware/validate');
 const inventoryValidator = require('../validators/inventoryValidator');
 const inventoryController = require('../controllers/inventoryController');
 
-// Create inventory item
-router.post('/', authenticate, authorize(['STORE_MANAGER', 'ADMIN']), validate(inventoryValidator), inventoryController.create);
+
+// search inventory item by 
+router.get('/search', authenticate, authorize(['STAFF','STORE_MANAGER','ADMIN']), inventoryController.search);
 
 // Get inventory items
 router.get('/', authenticate, authorize(['STAFF','STORE_MANAGER', 'ADMIN']), inventoryController.getAll );
 
 
-// Get one inventory item by ID
-router.get('/:id', authenticate, inventoryController.getOne);
-
+// Create inventory item
+router.post('/', authenticate, authorize(['STORE_MANAGER', 'ADMIN']), validate(inventoryValidator), inventoryController.create);
 
 // Update inventory item by ID
 router.put('/:id', authenticate, authorize(['STORE_MANAGER','ADMIN']), inventoryController.update);
 
+
 // Delete inventory item by ID
 router.delete('/:id', authenticate, authorize(['ADMIN']), inventoryController.delete);
+
+// Get one inventory item by ID
+router.get('/:id', authenticate, inventoryController.getOne);
+
 
 
 module.exports = router;

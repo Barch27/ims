@@ -107,3 +107,43 @@ exports.deleteItem = async (id, user) => {
 
     return item;
 };
+
+exports.searchItems = async (filters, user) => {
+    const query = {};
+
+   
+    if (filters.name) {
+        query.name = { $regex: filters.name, $options: 'i'};
+    }
+    if (filters.sku) {
+        query.sku = filters.sku;
+    }
+    if (filters.category) {
+        query.category = filters.category;
+    }
+
+
+    if (filters.minQuantity || filters.maxQuanity) {
+        query.quantity = {};
+        if (filters.minQuantity) query.quantity.$gte = filters.minQuantity;
+        if (filters.maxQuanity) query.quantity.$lte = filters.maxQuanity;
+    }
+
+    if (filters.startDate || filters.endDate) {
+    query.createdAt = {};
+    if (filters.startDate) query.createdAt.$gte = new Date(filters.startDate);
+    if (filters.endDate) query.createdAt.$lte = new Date(filters.endDate);
+    }
+
+    // Pagination & sorting
+    const limit = parseInt(filters.limit) || 20;
+    const skip = parseInt(filters.skip) || 0;
+    const sort = filters.sort || '-createdAt'; // default: newest first
+
+    const items = await InventoryItem.find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort(sort);
+
+    return items;
+};
