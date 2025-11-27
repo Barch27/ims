@@ -1,5 +1,6 @@
 const InventoryItem = require('../models/Inventory');
 const logActivity = require('../utils/logger');
+const StockTransaction = require('../models/stockTransaction');
 
 exports.createItem = async (data, user) => {
 
@@ -147,3 +148,86 @@ exports.searchItems = async (filters, user) => {
 
     return items;
 };
+
+exports.restockItem = async (id, quantity, user) => {
+  const item = await InventoryItem.findByIdAndUpdate(
+    id,
+    { $inc: { quantity } },
+    { new: true, runValidators: false }
+  );
+
+  if (!item) throw new Error('Item not found');
+
+  // No need to do item.quantity += quantity or item.save()
+
+  if (quantity !== undefined) {
+   
+        await StockTransaction.create({
+        itemId: item._id,
+        type: 'RESTOCK',
+        quantity: quantity,
+        actorId: user.id
+        });
+    
+    };
+
+  await logActivity({
+    userId: user.id,
+    role: user.role,
+    action: 'RESTOCK',
+    itemId: item._id,
+    details: { added: quantity, newQuantity: item.quantity }
+  });
+
+  return item;
+};
+
+
+
+exports.issueItem = async (id, quantity, user) => {
+  const item = await InventoryItem.findById(id);
+  if (!item) throw new Error('Item not found');
+
+  if (item.quantity < quantity) throw new Error('Insufficient stock');
+
+  item.quantity -= quantity;
+  item.updatedAt = Date.now();
+  await item.save();
+
+  if (quantity !== undefined) {
+   
+    await StockTransaction.create({
+    itemId: item._id,
+    type: 'RESTOCK',
+    quantity: quantity,
+    actorId: user.id
+    });
+    
+    };
+
+  await logActivity({
+    userId: user.id,
+    role: user.role,
+    action: 'ISSUE',
+    itemId: item._id,
+    details: { deducted: quantity, newQuantity: item.quantity }
+  });
+
+  // Low stock check here
+  if (item.quantity < item.minStockLevel) {
+    console.warn(`Stock low for ${item.name}`);
+    // Optionally trigger notification/email
+  }
+
+  return item;
+};
+
+
+exports.getTransactions = async (itemId, user) => {
+  const transactions = await StockTransaction.find({ itemId })
+    .populate('userId', 'name role')   // optional: show who did it
+    .sort('-timestamp');
+
+  return transactions;
+};
+

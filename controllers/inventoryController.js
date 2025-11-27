@@ -66,3 +66,45 @@ exports.search = async (req, res) => {
     res.status(400).json({ error: err.message });
   } 
 };
+
+exports.restock = async (req, res) => {
+  try {
+    const user = req.user;
+    const { quantity } = req.body; // e.g. ?name=widget&minQuantity=10&sort=quantity
+    const items = await InventorServices.restockItem(req.params.id, quantity, user);
+
+    res.json(items);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  } 
+};
+
+
+exports.issue = async (req, res) => {
+  try {
+    const user = req.user;
+    const quantity = req.body; // 
+    const items = await InventorServices.issueItem(req.params.id, quantity , user);
+
+    res.json(items);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  } 
+};
+
+
+exports.getTransactions = async (req, res) => {
+  try {
+    const user = req.user;
+    const transactions = await InventorServices.getTransactions(req.params.id, user);
+    res.json(transactions);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+
+
+
+
+
