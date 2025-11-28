@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const inventoryRoutes = require('./routes/inventory');
 const activityRoutes = require('./routes/activityLogs')
 const roleRoutes = require('./routes/roles');
+const lendingsRoutes = require('./routes/lendings');
 
 
 const app = express();
@@ -15,7 +16,8 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use('/api/inventory', inventoryRoutes);
 app.use('/', roleRoutes);
-app.use('/api/activity-logs', activityRoutes)
+app.use('/api/activity-logs', activityRoutes);
+app.use('/api/lendings', lendingsRoutes);
 
 
 app.listen(process.env.PORT, () => {
