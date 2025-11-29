@@ -69,3 +69,44 @@ exports.createLending = async ({ employeeId, items, notes }, actor) => {
   return lending;
 };
 
+
+exports.returnLending = async (lendingId, actor) => {
+  const lending = await Lending.findById(lendingId);
+  if (!lending) throw new Error('Lending not found');
+  if (lending.status !== 'ACTIVE') throw new Error('Lending already returned');
+
+  // Get all items for this lending
+  const items = await LendingItem.find({ lendingId: lending._id });
+
+  for (const li of items) {
+    const item = await InventoryStock.findById(li.itemId);
+    if (!item) continue;
+
+    item.quantity += li.quantity; // restore stock
+    await item.save();
+
+    await logActivity.create({
+      userId: actor.id,
+      role: actor.role,
+      action: 'ITEM_RETURNED',
+      entity: 'inventory',
+      entityId: li.itemId,
+      details: { quantity: li.quantity, lendingId: lending._id }
+    });
+  }
+
+  lending.status = 'RETURNED';
+  lending.returnedAt = new Date();
+  await lending.save();
+
+  await logActivity.create({
+    userId: actor.id,
+    role: actor.role,
+    action: 'LENDING_RETURN',
+    entity: 'lendings',
+    entityId: lending._id,
+    details: { itemCount: items.length }
+  });
+
+  return lending;
+};

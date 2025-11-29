@@ -29,3 +29,18 @@ exports.getAllLendings = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+
+exports.returnLending = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const actor = req.user; // from JWT middleware
+
+    const lending = await lendingService.returnLending(id, actor);
+
+    res.status(200).json(lending);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+

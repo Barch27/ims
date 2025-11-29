@@ -19,5 +19,10 @@ router.post('/lend',
     authorize(['STORE_MANAGER','ADMIN']), 
     lendingController.lend);
 
+router.post('/return/:id',
+    authenticate, 
+    authorize(['STORE_MANAGER','ADMIN']), 
+    lendingController.returnLending);
+
 
 module.exports = router;
